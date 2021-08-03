@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { useState, useEffect } from 'react';
 import s from './App.module.css';
 import { fetchImgs } from '../Api/Api';
 import { CustomLoader } from './Loader/Loader';
@@ -7,76 +7,67 @@ import { ImageGallery } from './ImageGallery/ImageGallery';
 import { Modal } from './Modal/Modal';
 import { MoreButton } from './Button/Button';
 
-export class App extends Component {
-  state = {
-    inputValue: '',
-    imgs: [],
-    errors: null,
-    loading: false,
-    currentPage: 1,
-    showModal: false,
-    imgModal: '',
-  };
+export const App = () => {
+  const [inputValue, setInputValue] = useState('');
+  const [imgs, setImgs] = useState([]);
+  const [errors, setErrors] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [showModal, setShowModal] = useState(false);
+  const [imgModal, setImgModal] = useState('');
 
-  componentDidUpdate(prevProps, prevState) {
-    const { inputValue } = this.state;
-    if (prevState.inputValue !== inputValue) {
-      this.fetcher();
-    }
-  }
-
-  fetcher = async () => {
-    const { inputValue, currentPage } = this.state;
+  const fetcher = async () => {
     if (inputValue === '') {
       return;
     }
     try {
-      this.setState({ loading: true });
+      setLoading(true);
       const imgs = await fetchImgs(inputValue, currentPage);
-      this.setState(prevState => ({
-        imgs: [...prevState.imgs, ...imgs.data.hits],
-        currentPage: currentPage + 1,
-        loading: false,
-      }));
+      setImgs([...imgs, ...imgs.data.hits]);
+      setCurrentPage(currentPage + 1);
+      setLoading(false);
+
       window.scrollTo({
         top: document.documentElement.scrollHeight,
         behavior: 'smooth',
       });
     } catch (error) {
-      this.setState({ errors: error.response.data, loading: false });
+      setErrors(error.response);
+      setLoading(false);
     }
   };
 
-  formSubmit = data => {
-    this.setState({ inputValue: data.trim(), currentPage: 1, imgs: [] });
+  const formSubmit = data => {
+    setInputValue(data.trim());
+    setCurrentPage(1);
+    setImgs([]);
   };
 
-  openModal = largeImageURL => {
-    this.setState({ showModal: true, imgModal: largeImageURL });
+  const openModal = largeImageURL => {
+    setShowModal(true);
+    setImgModal(largeImageURL);
   };
 
-  closeModal = event => {
-    this.setState({ showModal: false, imgModal: '' });
+  const closeModal = event => {
+    setShowModal(false);
+    setImgModal('');
   };
 
-  render() {
-    const { loading, errors, imgs, showModal, imgModal } = this.state;
-    return (
-      <div className={s.App}>
-        <Searchbar onSubmit={this.formSubmit} />
-        {errors ? (
-          <h2>{errors}</h2>
-        ) : (
-          <ImageGallery imgs={imgs} onImgClick={this.openModal} />
-        )}
-        {loading && <CustomLoader />}
-        {imgs.length > 0 && <MoreButton nextPage={this.fetcher} />}
-        {showModal && (
-          <Modal closeModal={this.closeModal}>
-            <img src={imgModal} alt="img" />
-          </Modal>
-        )}
-      </div>
-    );
-  }
-}
+  return (
+    <div className={s.App}>
+      <Searchbar onSubmit={formSubmit} />
+      {errors ? (
+        <h2>{errors}</h2>
+      ) : (
+        <ImageGallery imgs={imgs} onImgClick={openModal} />
+      )}
+      {loading && <CustomLoader />}
+      {imgs.length > 0 && <MoreButton nextPage={fetcher} />}
+      {showModal && (
+        <Modal closeModal={closeModal}>
+          <img src={imgModal} alt="img" />
+        </Modal>
+      )}
+    </div>
+  );
+};
