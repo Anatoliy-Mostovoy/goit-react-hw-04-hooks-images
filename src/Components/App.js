@@ -17,7 +17,7 @@ export const App = () => {
   const [imgModal, setImgModal] = useState('');
 
   useEffect(() => {
-    if (inputValue === '') {
+    if (!inputValue) {
       return;
     }
     fetcher();
@@ -27,7 +27,7 @@ export const App = () => {
     setLoading(true);
     try {
       const imgsResponse = await fetchImgs(inputValue, currentPage);
-      console.log(imgsResponse);
+
       setImgs([...imgs, ...imgsResponse.data.hits]);
       setCurrentPage(currentPage + 1);
       setLoading(false);
@@ -42,7 +42,6 @@ export const App = () => {
     }
   };
 
-  console.log(imgs);
   const formSubmit = data => {
     setInputValue(data.trim());
     setCurrentPage(1);
