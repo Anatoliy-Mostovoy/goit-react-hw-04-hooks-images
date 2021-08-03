@@ -16,14 +16,19 @@ export const App = () => {
   const [showModal, setShowModal] = useState(false);
   const [imgModal, setImgModal] = useState('');
 
-  const fetcher = async () => {
+  useEffect(() => {
     if (inputValue === '') {
       return;
     }
+    fetcher();
+  }, [inputValue]);
+
+  const fetcher = async () => {
+    setLoading(true);
     try {
-      setLoading(true);
-      const imgs = await fetchImgs(inputValue, currentPage);
-      setImgs([...imgs, ...imgs.data.hits]);
+      const imgsResponse = await fetchImgs(inputValue, currentPage);
+      console.log(imgsResponse);
+      setImgs([...imgs, ...imgsResponse.data.hits]);
       setCurrentPage(currentPage + 1);
       setLoading(false);
 
@@ -37,6 +42,7 @@ export const App = () => {
     }
   };
 
+  console.log(imgs);
   const formSubmit = data => {
     setInputValue(data.trim());
     setCurrentPage(1);
